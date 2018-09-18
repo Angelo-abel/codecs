@@ -16,6 +16,15 @@ def cmd_line():
     return parser.parse_args()
 
 
+class EncoderDecoder:
+    """docstring for EncoderDecoder"""
+    def __init__(self, label: int, enc_func, dec_func, description: str):
+        self.label = label
+        self.enc_func = enc_func
+        self.dec_func = dec_func
+        self.description = description
+
+
 def main():
     args = cmd_line()
 
