@@ -1,5 +1,3 @@
-import os
-
 def chunker(path: str):
     """Read 64 """
 # if os.isfile(path):
