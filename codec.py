@@ -1,7 +1,10 @@
 #!/usr/bin/python3
 import argparse
+from chunker import chunker
+
 
 def cmd_line():
+    """Commande line supported by codec.py"""
     parser = argparse.ArgumentParser(description="Encode decode any file"
         ,prog='codec') #usage='codec -e'
     parser.add_argument('-e','--encoder', help='Encoder number', type=int)
