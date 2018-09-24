@@ -3,7 +3,7 @@ from get_file_size import getFileSize
 from progressbar import progress
 
 
-def encode(input_path: str, ouptut_filename: str)->None:
+def encode(input_path: str, ouptut_filename: str, label: str="Encoding")->None:
     encode_str: bytes = b""
     status: bool = True
     file_size: int = getFileSize(input_path)
@@ -16,13 +16,13 @@ def encode(input_path: str, ouptut_filename: str)->None:
                 encode_str += (data ^ 0xFF).to_bytes(1, 'little')
             status = not status
             x += 1
-            progress(x, file_size)
+            progress(x, file_size, label)
+    print()
     with open(ouptut_filename, 'wb') as open_file:
         open_file.write(encode_str)
-    print()
     return None
 
 
 def decode(input_path: str, ouptut_filename: str)->None:
-    encode(input_path, ouptut_filename)
+    encode(input_path, ouptut_filename, label="Decoding")
     return None
