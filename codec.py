@@ -1,10 +1,15 @@
 #!/usr/bin/python3
 import argparse
-from sys import exit
+import sys
 
 from encoders_decoders import inverter as inv
 from encoders_decoders import xor
 from encoders_decoders import xor_inv
+
+def displayError(error: str):
+    RED: str = "\33[1;31m"
+    NEUTRAL: str = "\33[1;0m"
+    print("{}{}{}".format(RED, error, NEUTRAL))
 
 def cmd_line():
     """Commande line supported by codec.py"""
@@ -41,17 +46,29 @@ def build_list():
         print("\033[1;34m{}: {}\033[0m".format(encoder.label, 
             encoder.description))
 
-def main():
-    args = cmd_line()
-    if args.input and args.output:
-        enc_dec = build_enc_dec()
-        if args.encoder:
-            enc_dec[args.encoder].enc_func(args.input, args.output)
-        elif args.decoder:
-            enc_dec[args.decoder].dec_func(args.input, args.output)
-    if args.list:
-        build_list()
-        exit(0)
 
 if __name__ == '__main__':
-    main()
+    args = cmd_line()
+    try:
+        if args.input and args.output:   
+            enc_dec = build_enc_dec()
+            if args.encoder:
+                enc_dec[args.encoder].enc_func(args.input, args.output)
+            elif args.decoder:
+                enc_dec[args.decoder].dec_func(args.input, args.output)
+            sys.exit(0)
+        if args.list:
+            build_list()
+            sys.exit(0)
+
+    except FileNotFoundError:
+        displayError("The file doesn't found")
+        sys.exit(-1)
+    except FileExistsError:
+        displayError("The file doesn't exists")
+        sys.exit(-1)
+    except PermissionError:
+        displayError("Permission denied to write output file in this location {}".format(args.output))
+    except Exception as exception:
+        displayError("Something went wrong. Operation will abort!!")
+        sys.exit(-1)
