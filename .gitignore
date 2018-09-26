@@ -1,2 +1,6 @@
 *.txt
 corentin*
+__pycache__
+.pytest_cache
+*.swp
+.cache
