@@ -1,14 +1,15 @@
 from chunker import chunker
-from get_file_size import getFileSize
+from utils import *
 from progressbar import progress
+from metadata import *
 
 
-def encode(input_path: str, ouptut_filename: str, label: str="Encoding")->None:
-    encode_str: bytes = b""
+def encode(input_file: str, output_file: str)->None:
+    encode_str: bytes = metaDataGenerate() + b""
     status: bool = True
-    file_size: int = getFileSize(input_path)
+    file_size: int = getFileSize(input_file)
     x: int  = 0
-    for chunk in chunker(input_path):
+    for chunk in chunker(input_file):
         for data in chunk:
             if status:
                 encode_str += (data ^ 0x65).to_bytes(1, 'little')
@@ -16,13 +17,34 @@ def encode(input_path: str, ouptut_filename: str, label: str="Encoding")->None:
                 encode_str += (data ^ 0xFF).to_bytes(1, 'little')
             status = not status
             x += 1
-            progress(x, file_size, label)
+            progress(x, file_size, "Encode")
     print()
-    with open(ouptut_filename, 'wb') as open_file:
-        open_file.write(encode_str)
+    storeFile(output_file, encode_str)
     return None
 
 
-def decode(input_path: str, ouptut_filename: str)->None:
-    encode(input_path, ouptut_filename, label="Decoding")
+def decode(input_file: str, output_file: str)->None:
+    file_size: int = getFileSize(input_file)
+    x: int = 0
+    decode_str: bytes =  b""
+    status: bool = True
+    if metaDataVerify(input_file):
+        file_size: int = getFileSize(input_file)
+        x: int = 0
+        i: int = 0
+        decode_str: bytes = b""
+        for chunk in chunker(input_file):
+            for data in chunk:
+                if i > 64:
+                    if status:
+                        decode_str += (data ^ 0x65).to_bytes(1, 'little')
+                    else:
+                        decode_str += (data ^ 0xFF).to_bytes(1, 'little')
+                    status = not status
+                else:
+                    i += 1
+                x += 1
+                progress(x, file_size, 'Decode')
+        print()
+        storeFile(output_file, decode_str)
     return None

@@ -5,13 +5,15 @@ import sys
 from encoders_decoders import inverter as inv
 from encoders_decoders import xor
 from encoders_decoders import xor_inv
+from UserException import NotEncodedError
+
 
 def displayError(error: str):
     RED: str = "\33[1;31m"
     NEUTRAL: str = "\33[1;0m"
     print("{}{}{}".format(RED, error, NEUTRAL))
 
-def cmd_line():
+def cmdLine():
     """Commande line supported by codec.py"""
     parser = argparse.ArgumentParser(description="Encode decode any file"
         ,prog='codec') #usage='codec -e'
@@ -33,7 +35,7 @@ class EncoderDecoder:
         self.dec_func = dec_func
         self.description = description
 
-def build_enc_dec()->dict:
+def buildEncDec()->dict:
     enc_dec_info: dict = {
     1: EncoderDecoder(1, inv.encode, inv.decode, "Inv Encoder/Decoder"),
     2: EncoderDecoder(2, xor.encode, xor.decode, 'Xor classic Encoder/Decoder'),
@@ -41,24 +43,24 @@ def build_enc_dec()->dict:
     }
     return enc_dec_info
 
-def build_list():
-    for (i, encoder) in build_enc_dec().items():
+def buildList():
+    for (i, encoder) in buildEncDec().items():
         print("\033[1;34m{}: {}\033[0m".format(encoder.label, 
             encoder.description))
 
 
 if __name__ == '__main__':
-    args = cmd_line()
+    args = cmdLine()
     try:
         if args.input and args.output:   
-            enc_dec = build_enc_dec()
+            enc_dec = buildEncDec()
             if args.encoder:
                 enc_dec[args.encoder].enc_func(args.input, args.output)
             elif args.decoder:
                 enc_dec[args.decoder].dec_func(args.input, args.output)
             sys.exit(0)
         if args.list:
-            build_list()
+            buildList()
             sys.exit(0)
 
     except FileNotFoundError:
@@ -69,6 +71,8 @@ if __name__ == '__main__':
         sys.exit(-1)
     except PermissionError:
         displayError("Permission denied to write output file in this location {}".format(args.output))
+    except NotEncodedError:
+        displayError("This file is not encoded")
     except Exception as exception:
         displayError("Something went wrong. Operation will abort!!")
         sys.exit(-1)
