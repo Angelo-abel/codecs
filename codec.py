@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 import argparse
 import sys
+from datetime import datetime
 
 from encoders_decoders import inverter as inv
 from encoders_decoders import xor
@@ -19,9 +20,8 @@ def cmdLine():
         ,prog='codec') #usage='codec -e'
     parser.add_argument('-e','--encoder', help='Encoder number', type=int)
     parser.add_argument('-d', '--decoder', help='Decoder numer', type=int)
-    parser.add_argument('-i', '--input', help='Input file name to encode/decode'
-        , type=str)
-    parser.add_argument('-o', '--output', help='Output file name', type=str)
+    parser.add_argument('-i', '--input', help='Input file name to encode/decode', type=str, required=True)
+    parser.add_argument('-o', '--output', help='Output file name', type=str, required=True)
     parser.add_argument('-l', '--list', help='list of all encode/decoder'
         ,action='store_true')
     return parser.parse_args()
@@ -50,6 +50,7 @@ def buildList():
 
 
 if __name__ == '__main__':
+    start_time = datetime.now()
     args = cmdLine()
     try:
         if args.input and args.output:   
@@ -58,6 +59,7 @@ if __name__ == '__main__':
                 enc_dec[args.encoder].enc_func(args.input, args.output)
             elif args.decoder:
                 enc_dec[args.decoder].dec_func(args.input, args.output)
+            displayError(datetime.now()-start_time)
             sys.exit(0)
         if args.list:
             buildList()
