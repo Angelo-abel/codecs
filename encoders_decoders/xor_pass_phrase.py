@@ -4,18 +4,18 @@ from progressbar import progress
 from metadata import *
 
 
-def encode(input_file: str, output_file: str)->None:
+def encode(input_file: str, output_file: str, pass_phrase: bytes)->None:
     encode_str: bytes = metaDataGenerate() + b""
-    status: bool = True
     file_size: int = getFileSize(input_file)
     x: int  = 0
+    index: int = 0
     for chunk in chunker(input_file):
         for data in chunk:
-            if status:
-                encode_str += (data ^ 0x65).to_bytes(1, 'little')
+            encode_str += (data ^ pass_phrase[index]).to_bytes(1, 'little')
+            if index < 127:
+                index += 1
             else:
-                encode_str += (data ^ 0xFF).to_bytes(1, 'little')
-            status = not status
+                index = 0
             x += 1
             progress(x, file_size, "Encode")
     print()
@@ -23,25 +23,25 @@ def encode(input_file: str, output_file: str)->None:
     return None
 
 
-def decode(input_file: str, output_file: str)->None:
+def decode(input_file: str, output_file: str, pass_phrase: bytes)->None:
     if metaDataVerify(input_file):
-        status: bool = True
-        file_size: int = getFileSize(input_file)
-        x: int = 0
-        i: int = 0
         decode_str: bytes = b""
+        file_size: int = getFileSize(input_file)
+        x: int  = 0
+        index: int = 0
+        i: int = 0
         for chunk in chunker(input_file):
             for data in chunk:
                 if i > 64:
-                    if status:
-                        decode_str += (data ^ 0x65).to_bytes(1, 'little')
+                    decode_str += (data ^ pass_phrase[index]).to_bytes(1, 'little')
+                    if index < 127:
+                        index += 1
                     else:
-                        decode_str += (data ^ 0xFF).to_bytes(1, 'little')
-                    status = not status
+                        index = 0
                 else:
                     i += 1
                 x += 1
-                progress(x, file_size, 'Decode')
+                progress(x, file_size, "Decode")
         print()
         storeFile(output_file, decode_str)
     return None
