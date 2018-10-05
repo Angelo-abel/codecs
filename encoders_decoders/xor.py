@@ -20,9 +20,6 @@ def encode(input_file: str, output_file: str)->None:
 
 
 def decode(input_file: str, output_file: str)->None:
-    file_size: int = getFileSize(input_file)
-    x: int = 0
-    decode_str: bytes =  b""
     if metaDataVerify(input_file):
         file_size: int = getFileSize(input_file)
         x: int = 0
