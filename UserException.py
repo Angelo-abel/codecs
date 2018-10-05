@@ -6,3 +6,8 @@ class Error(Exception):
 class NotEncodedError(Error):
     """docstring for NotEncodedError"""
     pass
+
+
+class PassPhraseError(Error):
+    """docstring for PassPhraseError"""
+    pass
