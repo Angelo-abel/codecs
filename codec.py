@@ -2,11 +2,13 @@
 import argparse
 import sys
 from datetime import datetime
+from hashlib import blake2b
 
 from encoders_decoders import inverter as inv
 from encoders_decoders import xor
 from encoders_decoders import xor_inv
-from UserException import NotEncodedError
+from encoders_decoders import xor_pass_phrase
+from UserException import NotEncodedError, PassPhraseError
 
 
 def displayError(error: str):
@@ -20,10 +22,11 @@ def cmdLine():
         ,prog='codec') #usage='codec -e'
     parser.add_argument('-e','--encoder', help='Encoder number', type=int)
     parser.add_argument('-d', '--decoder', help='Decoder numer', type=int)
-    parser.add_argument('-i', '--input', help='Input file name to encode/decode', type=str, required=True)
-    parser.add_argument('-o', '--output', help='Output file name', type=str, required=True)
+    parser.add_argument('-i', '--input', help='Input file name to encode/decode', type=str)
+    parser.add_argument('-o', '--output', help='Output file name', type=str)
     parser.add_argument('-l', '--list', help='list of all encode/decoder'
         ,action='store_true')
+    parser.add_argument('-p', '--passphrase', help='Pass phrase to encode file', type=str)
     return parser.parse_args()
 
 
@@ -39,7 +42,8 @@ def buildEncDec()->dict:
     enc_dec_info: dict = {
     1: EncoderDecoder(1, inv.encode, inv.decode, "Inv Encoder/Decoder"),
     2: EncoderDecoder(2, xor.encode, xor.decode, 'Xor classic Encoder/Decoder'),
-    3: EncoderDecoder(3, xor_inv.encode, xor_inv.decode, 'Xor & Inv Encoder/Decoder')
+    3: EncoderDecoder(3, xor_inv.encode, xor_inv.decode, 'Xor & Inv Encoder/Decoder'),
+    4: EncoderDecoder(4, xor_pass_phrase.encode, xor_pass_phrase.decode, 'Xor with pass phrase')
     }
     return enc_dec_info
 
@@ -47,6 +51,9 @@ def buildList():
     for (i, encoder) in buildEncDec().items():
         print("\033[1;34m{}: {}\033[0m".format(encoder.label, 
             encoder.description))
+
+def passPhraseEncode(pass_phrase: str)->bytes:
+    return blake2b(pass_phrase.encode('utf8')).hexdigest().encode('utf8')
 
 
 if __name__ == '__main__':
@@ -56,9 +63,21 @@ if __name__ == '__main__':
         if args.input and args.output:   
             enc_dec = buildEncDec()
             if args.encoder:
-                enc_dec[args.encoder].enc_func(args.input, args.output)
+                if args.encoder in (4, 0):
+                    if args.passphrase:
+                        enc_dec[args.encoder].enc_func(args.input, args.output, passPhraseEncode(args.passphrase))
+                    else:
+                        raise PassPhraseError
+                else:
+                    enc_dec[args.encoder].enc_func(args.input, args.output)
             elif args.decoder:
-                enc_dec[args.decoder].dec_func(args.input, args.output)
+                if args.decoder in (4, 0):
+                    if args.passphrase:
+                        enc_dec[args.decoder].dec_func(args.input, args.output, passPhraseEncode(args.passphrase))
+                    else:
+                        raise PassPhraseError
+                else:
+                    enc_dec[args.decoder].dec_func(args.input, args.output)
             displayError(datetime.now()-start_time)
             sys.exit(0)
         if args.list:
@@ -73,8 +92,13 @@ if __name__ == '__main__':
         sys.exit(-1)
     except PermissionError:
         displayError("Permission denied to write output file in this location {}".format(args.output))
+        exit(-1)
     except NotEncodedError:
         displayError("This file is not encoded")
-    except Exception as exception:
-        displayError("Something went wrong. Operation will abort!!")
-        sys.exit(-1)
+        exit(-1)
+    except PassPhraseError:
+        displayError("Please enter pass phrase")
+        exit(-1)
+    #except Exception as exception:
+    #    displayError("Something went wrong. Operation will abort!!")
+    #    sys.exit(-1)
