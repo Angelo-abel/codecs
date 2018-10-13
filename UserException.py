@@ -11,3 +11,8 @@ class NotEncodedError(Error):
 class PassPhraseError(Error):
     """docstring for PassPhraseError"""
     pass
+
+
+class ExpiredError(Error):
+    """docstring for ExpiredError"""
+    pass

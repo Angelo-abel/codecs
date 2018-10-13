@@ -4,11 +4,15 @@ from progressbar import progress
 from metadata import *
 
 
-def encode(input_file: str, output_file: str)->None:
-    encode_str: bytes = metaDataGenerate() + b""
+def encode(input_file: str, output_file: str, validity: int = 0)->None:
+    encode_str: bytes = b""
     status: bool = True
     file_size: int = getFileSize(input_file)
     x: int  = 0
+    if validity == 0:
+        encode_str += metaDataGenerate()
+    else:
+        encode_str += metaDataGenerate(validity)
     for chunk in chunker(input_file):
         for data in chunk:
             if status:
