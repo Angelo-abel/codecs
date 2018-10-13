@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 import argparse
 import sys
+import os
 from datetime import datetime
 from hashlib import blake2b
 
@@ -8,7 +9,7 @@ from encoders_decoders import inverter as inv
 from encoders_decoders import xor
 from encoders_decoders import xor_inv
 from encoders_decoders import xor_pass_phrase
-from UserException import NotEncodedError, PassPhraseError
+from UserException import *
 
 
 def displayError(error: str):
@@ -27,6 +28,7 @@ def cmdLine():
     parser.add_argument('-l', '--list', help='list of all encode/decoder'
         ,action='store_true')
     parser.add_argument('-p', '--passphrase', help='Pass phrase to encode file', type=str)
+    parser.add_argument('-t', '--time', help='Validity time of encoded file in seconds', type=int, default=0)
     return parser.parse_args()
 
 
@@ -47,14 +49,18 @@ def buildEncDec()->dict:
     }
     return enc_dec_info
 
-def buildList():
+def buildList()->None:
     for (i, encoder) in buildEncDec().items():
         print("\033[1;34m{}: {}\033[0m".format(encoder.label, 
             encoder.description))
+    return None
 
 def passPhraseEncode(pass_phrase: str)->bytes:
     return blake2b(pass_phrase.encode('utf8')).hexdigest().encode('utf8')
 
+def destroyEncodeFile(path_file: str)->None:
+    os.remove(path_file)
+    return None
 
 if __name__ == '__main__':
     start_time = datetime.now()
@@ -65,11 +71,11 @@ if __name__ == '__main__':
             if args.encoder:
                 if args.encoder in (4, 0):
                     if args.passphrase:
-                        enc_dec[args.encoder].enc_func(args.input, args.output, passPhraseEncode(args.passphrase))
+                        enc_dec[args.encoder].enc_func(args.input, args.output, passPhraseEncode(args.passphrase), args.time)
                     else:
                         raise PassPhraseError
                 else:
-                    enc_dec[args.encoder].enc_func(args.input, args.output)
+                    enc_dec[args.encoder].enc_func(args.input, args.output, args.time)
             elif args.decoder:
                 if args.decoder in (4, 0):
                     if args.passphrase:
@@ -92,13 +98,17 @@ if __name__ == '__main__':
         sys.exit(-1)
     except PermissionError:
         displayError("Permission denied to write output file in this location {}".format(args.output))
-        exit(-1)
+        sys.exit(-1)
     except NotEncodedError:
         displayError("This file is not encoded")
-        exit(-1)
+        sys.exit(-1)
     except PassPhraseError:
         displayError("Please enter pass phrase")
-        exit(-1)
-    #except Exception as exception:
-    #    displayError("Something went wrong. Operation will abort!!")
-    #    sys.exit(-1)
+        sys.exit(-1)
+    except ExpiredError:
+        destroyEncodeFile(args.input)
+        displayError("La durée de validité de ce fichier a expiré")
+        sys.exit(-1)
+    except Exception as exception:
+        displayError("Something went wrong. Operation will abort!!")
+        sys.exit(-1)
