@@ -10,6 +10,8 @@ def encode(input_file: str, output_file: str, pass_phrase: bytes,
     file_size: int = getFileSize(input_file)
     x: int  = 0
     index: int = 0
+    update_progress: int = int(0.1 * file_size)
+    update_step: int = update_progress
     if validity == 0:
         encode_str += metaDataGenerate()
     else:
@@ -22,7 +24,9 @@ def encode(input_file: str, output_file: str, pass_phrase: bytes,
             else:
                 index = 0
             x += 1
-            progress(x, file_size, "Encode")
+            if x == update_progress:
+                progress(x, file_size, "Encode")
+                update_progress += udapte_step
     print()
     storeFile(output_file, encode_str)
     return None
@@ -35,6 +39,8 @@ def decode(input_file: str, output_file: str, pass_phrase: bytes)->None:
         x: int  = 0
         index: int = 0
         i: int = 0
+        update_progress: int = int(0.1 * file_size)
+        update_step: int = update_progress
         for chunk in chunker(input_file):
             for data in chunk:
                 if i > 64:
@@ -46,7 +52,9 @@ def decode(input_file: str, output_file: str, pass_phrase: bytes)->None:
                 else:
                     i += 1
                 x += 1
-                progress(x, file_size, "Decode")
+                if x == update_progress:
+                    progress(x, file_size, "Decode")
+                    update_progress += update_step
         print()
         storeFile(output_file, decode_str)
     return None
