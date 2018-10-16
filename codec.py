@@ -2,7 +2,7 @@
 import argparse
 import sys
 import os
-from datetime import datetime
+from time import time
 from hashlib import blake2b
 
 from encoders_decoders import inverter as inv
@@ -63,7 +63,7 @@ def destroyEncodeFile(path_file: str)->None:
     return None
 
 if __name__ == '__main__':
-    start_time = datetime.now()
+    start_time = time()
     args = cmdLine()
     try:
         if args.input and args.output:   
@@ -84,7 +84,7 @@ if __name__ == '__main__':
                         raise PassPhraseError
                 else:
                     enc_dec[args.decoder].dec_func(args.input, args.output)
-            displayError(datetime.now()-start_time)
+            displayError(time()-start_time)
             sys.exit(0)
         if args.list:
             buildList()
