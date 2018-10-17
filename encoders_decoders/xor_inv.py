@@ -8,7 +8,7 @@ def encode(input_file: str, output_file: str, validity: int = 0)->None:
     encode_str: bytes = b""
     status: bool = True
     file_size: int = getFileSize(input_file)
-    update_progress: int = int(0.1 * file_size)
+    update_progress: int = int(0.25 * file_size)
     update_step: int = update_progress
     x: int  = 0
     if validity == 0:
@@ -37,7 +37,7 @@ def decode(input_file: str, output_file: str)->None:
         file_size: int = getFileSize(input_file)
         x: int = 0
         i: int = 0
-        update_progress: int = int(0.1 * file_size)
+        update_progress: int = int(0.25 * file_size)
         update_step: int = update_progress
         decode_str: bytes = b""
         for chunk in chunker(input_file):
