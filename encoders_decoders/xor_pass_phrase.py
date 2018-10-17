@@ -6,57 +6,65 @@ from metadata import *
 
 def encode(input_file: str, output_file: str, pass_phrase: bytes,
     validity: int = 0, bar: bool = False)->None:
-    encode_str: bytes = b""
+    # encode_str: bytes = b""
     # file_size: int = getFileSize(input_file)
     # x: int  = 0
     index: int = 0
     # update_progress: int = int(0.25 * file_size)
     # update_step: int = update_progress
-    if validity == 0:
-        encode_str += metaDataGenerate()
-    else:
-        encode_str += metaDataGenerate(validity)
-    for chunk in chunker(input_file):
-        for data in chunk:
-            encode_str += (data ^ pass_phrase[index]).to_bytes(1, 'little')
-            if index < 127:
-                index += 1
-            else:
-                index = 0
-            if bar:
-                x += 1
-                if x == update_progress:
-                    progress(x, file_size, "Encode")
-                    update_progress += udapte_step
-    print()
-    storeFile(output_file, encode_str)
+    with open(output_file, 'wb') as handle_file:
+        if validity == 0:
+            handle_file.write(metaDataGenerate())
+            # encode_str += metaDataGenerate()
+        else:
+            handle_file.write(metaDataGenerate(validity))
+            # encode_str += metaDataGenerate(validity)
+        for chunk in chunker(input_file):
+            for data in chunk:
+                # encode_str += (data ^ pass_phrase[index]).to_bytes(1, 'little')
+                handle_file.write(
+                    (data ^ pass_phrase[index]).to_bytes(1, 'little'))
+                if index < 127:
+                    index += 1
+                else:
+                    index = 0
+        #         if bar:
+        #             x += 1
+        #             if x == update_progress:
+        #                 progress(x, file_size, "Encode")
+        #                 update_progress += udapte_step
+        # print()
+        # storeFile(output_file, encode_str)
     return None
 
 
 def decode(input_file: str, output_file: str, pass_phrase: bytes, bar: bool = False)->None:
     if metaDataVerify(input_file):
-        decode_str: bytes = b""
+        # decode_str: bytes = b""
         # file_size: int = getFileSize(input_file)
         # x: int  = 0
         index: int = 0
         i: int = 0
         # update_progress: int = int(0.25 * file_size)
         # update_step: int = update_progress
-        for chunk in chunker(input_file):
-            for data in chunk:
-                if i > 64:
-                    decode_str += (data ^ pass_phrase[index]).to_bytes(1, 'little')
-                    if index < 127:
-                        index += 1
+        with open(output_file, 'wb') as handle_file:
+            for chunk in chunker(input_file):
+                for data in chunk:
+                    if i > 64:
+                        # decode_str += (data ^ pass_phrase[index]).to_bytes(1, 'little')
+                        handle_file.write(
+                            (data ^ pass_phrase[index]).to_bytes(1, 'little'))
+                        if index < 127:
+                            index += 1
+                        else:
+                            index = 0
                     else:
-                        index = 0
-                else:
-                    i += 1
+                        i += 1
         #         x += 1
         #         if bar:
         #             if x == update_progress:
         #                 progress(x, file_size, "Decode")
         #                 update_progress += update_step
         # print()
-        storeFile(output_file, decode_str)
+        # storeFile(output_file, decode_str)
     return None
