@@ -9,4 +9,4 @@ Merde!!! Par exemple pour un fichier ayant une taille 500ko, il est appelé:
 **547742 fois**
 
 # Solution à implémenter
-Augmenter la résolution du progressbar
+Diminuer la résolution du progressbar i.e incrémenter de 10%

@@ -9,4 +9,4 @@ D'après les résultats du profiling, le chunker énormément appelé.
 A cette version, nous appellons le **progressbar 10 fois peu importe la taille du fichier**.
 
 # Solutions à implémenter
-Comment serait la rapidité si, j'appelais le progressbar que **4 fois**
+Comment serait la rapidité si, j'appelais le progressbar que **4 fois** i.e que la résolution passe à 25%
