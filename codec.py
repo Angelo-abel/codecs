@@ -84,7 +84,8 @@ if __name__ == '__main__':
                         raise PassPhraseError
                 else:
                     enc_dec[args.decoder].dec_func(args.input, args.output)
-            displayError(time()-start_time)
+            #displayError(time()-start_time)
+            print(time()-start_time)
             sys.exit(0)
         if args.list:
             buildList()
