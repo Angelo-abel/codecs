@@ -1,9 +1,4 @@
-def chunker(path: str, size: int = 64)->None:
-    """Read 64 """
-# if os.isfile(path):
-    with open(path, 'rb') as file_handle:
-        while True:
-            data_chunk = file_handle.read(size)
-            if not data_chunk:
-                break
-            yield data_chunk
+def chunker(path_file: str, position: int = 0)->None:
+    with open(path_file, 'rb') as source_file:
+        source_file.seek(int(-position), 2)
+        return source_file.read()

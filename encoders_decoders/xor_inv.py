@@ -1,71 +1,68 @@
 from chunker import chunker
-from utils import *
-from progressbar import progress
 from metadata import *
+from os import stat
+import numpy as np
 
+
+WORD_SIZE: int = 8
 
 def encode(input_file: str, output_file: str, validity: int = 0, bar: bool = False)->None:
-    # encode_str: bytes = b""
     status: bool = True
-    # file_size: int = getFileSize(input_file)
-    # update_progress: int = int(0.25 * file_size)
-    # update_step: int = update_progress
-    # x: int  = 0
-    with open(output_file, 'wb') as handle_file:
+    file_size: int = stat(input_file).st_size
+    middle: int = int((file_size // WORD_SIZE) / 2)* WORD_SIZE
+    with open(output_file, 'wb') as destination_file:
         if validity == 0:
-            handle_file.write(metaDataGenerate())
-            # encode_str += metaDataGenerate()
+            destination_file.write(metaDataGenerate())
         else:
-            handle_file.write(metaDataGenerate(validity))
-            # encode_str += metaDataGenerate(validity)
-        for chunk in chunker(input_file):
-            for data in chunk:
+            destination_file.write(metaDataGenerate(validity))
+        with open(input_file, 'rb') as source_file:
+            destination_file.write(np.bitwise_xor(
+                np.frombuffer(
+                    source_file.read(middle), dtype=np.uint64),
+                0x6565656565656565).tobytes())
+            source_file.seek(middle)
+            destination_file.write(
+                np.invert(np.fromfile(
+                    source_file, dtype=np.uint64)).tobytes())
+        residu: int = 0
+        residu = file_size % WORD_SIZE
+        if residu != 0:
+            for data in chunker(input_file, residu):
                 if status:
-                    handle_file.write((data ^ 0x65).to_bytes(1, 'little'))
-                    # encode_str += (data ^ 0x65).to_bytes(1, 'little')
+                    destination_file.write((data ^ 0x65).to_bytes(1, 'little'))
                 else:
-                    handle_file.write((data ^ 0xFF).to_bytes(1, 'little'))
-                    # encode_str += (data ^ 0xFF).to_bytes(1, 'little')
+                    destination_file.write(
+                        (data ^ 0xFF).to_bytes(1, 'little'))
                 status = not status
-        #         if bar:
-        #             x += 1
-        #             if x == update_progress:
-        #                 progress(x, file_size, "Encode")
-        #                 update_progress += update_step
-        # print()
-    # storeFile(output_file, encode_str)
     return None
 
 
 def decode(input_file: str, output_file: str, bar: bool = False)->None:
     if metaDataVerify(input_file):
         status: bool = True
-        # file_size: int = getFileSize(input_file)
-        # x: int = 0
-        i: int = 0
-        # update_progress: int = int(0.25 * file_size)
-        # update_step: int = update_progress
-        # decode_str: bytes = b""
-        with open(output_file, 'wb') as handle_file:
-            for chunk in chunker(input_file):
-                for data in chunk:
-                    if i > 64:
-                        if status:
-                            handle_file.write(
-                                (data ^ 0x65).to_bytes(1, 'little'))
-                            # decode_str += (data ^ 0x65).to_bytes(1, 'little')
-                        else:
-                            handle_file.write(
-                                (data ^ 0xFF).to_bytes(1, 'little'))
-                            # decode_str += (data ^ 0xFF).to_bytes(1, 'little')
-                        status = not status
+        file_size: int = stat(input_file).st_size
+        middle: int = int(((file_size - 64) // WORD_SIZE) / 2) * WORD_SIZE
+        with open(output_file, 'wb') as destination_file:
+            with open(input_file, 'rb') as source_file:
+                source_file.seek(64)
+                destination_file.write(np.bitwise_xor(
+                    np.frombuffer(
+                        source_file.read(middle), dtype=np.uint64),
+                    0x6565656565656565).tobytes())
+                source_file.seek(middle + 64)
+                destination_file.write(
+                    np.invert(np.fromfile(
+                        source_file, dtype=np.uint64)).tobytes())
+            residu: int = 0
+            residu = (file_size - 64) % WORD_SIZE
+            if residu != 0:
+                for data in chunker(input_file, residu):
+                    if status:
+                        destination_file.write(
+                            (data ^ 0x65).to_bytes(1, 'little'))
                     else:
-                        i += 1
-            #         if bar:
-            #             x += 1
-            #             if x == update_progress:
-            #                 progress(x, file_size, 'Decode')
-            #                 update_progress += update_step
-            # print()
-            # storeFile(output_file, decode_str)
+                        destination_file.write(
+                            (data ^ 0xFF).to_bytes(1, 'little'))
+                    status = not status
+
     return None

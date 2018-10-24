@@ -5,3 +5,4 @@ __pycache__
 *.swp
 .cache
 benchmark_files
+test.py
