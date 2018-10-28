@@ -96,6 +96,7 @@ if __name__ == '__main__':
             os.path.join(script_path, 'measurement/{}'.format(args.tag)))):
             os.mkdir(script_path+'/measurement/{}'.format(str(args.tag)))
         run(benchmark_file_list, args.number, args.tag, args.index)
+        exit(0)
     except NotADirectoryError:
         print("Please, Folder required not file")
         sys.exit(-1)
